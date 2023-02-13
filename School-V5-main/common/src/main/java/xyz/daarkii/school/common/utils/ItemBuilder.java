@@ -5,6 +5,7 @@ import io.github.bananapuncher714.nbteditor.NBTEditor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -15,6 +16,7 @@ import xyz.daarkii.school.common.message.MessageWrapper;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ItemBuilder {
 
@@ -292,6 +294,18 @@ public class ItemBuilder {
     @NotNull
     public GuiItem buildGuiItem() {
         return new GuiItem(this.build());
+    }
+
+    /**
+     * Migrates the current builder to a GuiItem of the IF framework
+     * These items are used for inventories only!
+     *
+     * @param consumer a consumer which holds the clickEvent which triggers when the item is clicked
+     * @return the wrapped gui item
+     */
+    @NotNull
+    public GuiItem buildGuiItem(Consumer<InventoryClickEvent> consumer) {
+        return new GuiItem(this.build(), consumer);
     }
 
     /**

@@ -3,6 +3,7 @@ package xyz.daarkii.school.common.document;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,18 +135,20 @@ public class Document {
     }
 
     public int getInt(@NotNull String key) {
-
+        Bukkit.broadcastMessage("1");
         if(!this.contains(key))
             return 0;
-
+        Bukkit.broadcastMessage("2");
         var jsonObject = this.getJsonObjectFromKey(key);
-
+        Bukkit.broadcastMessage("3");
         if(jsonObject == null)
             return 0;
-
+        Bukkit.broadcastMessage("4");
         key = this.getEndKey(key);
-
+        Bukkit.broadcastMessage("5");
         JsonElement element = jsonObject.get(key);
+        Bukkit.broadcastMessage("6");
+        Bukkit.broadcastMessage((element.isJsonPrimitive() ? element.getAsInt() : 0) + "");
         return element.isJsonPrimitive() ? element.getAsInt() : 0;
     }
 

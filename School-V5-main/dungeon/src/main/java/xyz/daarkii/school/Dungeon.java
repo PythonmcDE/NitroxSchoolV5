@@ -1,13 +1,15 @@
 package xyz.daarkii.school;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
-import xyz.daarkii.school.commands.LocationCommand;
-import xyz.daarkii.school.mobs.MobSpawnManager;
+import xyz.daarkii.school.commands.DungeonCommand;
+import xyz.daarkii.school.commands.SafeZoneTestCommand;
+import xyz.daarkii.school.events.EntityDamageByEntityListener;
+import xyz.daarkii.school.events.EntityDeathListener;
+import xyz.daarkii.school.events.EntityDamageListener;
+import xyz.daarkii.school.manager.GameruleManager;
+import xyz.daarkii.school.manager.MobSpawnManager;
 import xyz.daarkii.school.core.SchoolCore;
-
-import java.io.BufferedReader;
 
 public class Dungeon extends SchoolCore {
 
@@ -15,13 +17,13 @@ public class Dungeon extends SchoolCore {
     public void onEnable() {
         super.onEnable();
 
-        MobSpawnManager mobSpawnManager = new MobSpawnManager(20*30, false);
-        mobSpawnManager.startTimer();
+        new MobSpawnManager(20*30, false).startTimer();
 
-        System.out.println("Dungeon started");
+        new GameruleManager();
 
         register(Bukkit.getPluginManager());
 
+        System.out.println("Dungeon started");
     }
 
     @Override
@@ -36,6 +38,25 @@ public class Dungeon extends SchoolCore {
      * @param pm
      */
     private void register(PluginManager pm){
-        getCommand("loc").setExecutor(new LocationCommand());
+        this.commandManager.addCommand(new DungeonCommand());
+        this.commandManager.addCommand(new SafeZoneTestCommand());
+
+        pm.registerEvents(new EntityDeathListener(), this);
+        pm.registerEvents(new EntityDamageListener(), this);
+        pm.registerEvents(new EntityDamageByEntityListener(), this);
     }
+
+
+    //TODO
+    /*
+    - Death message weg machen
+    - Damage ändern
+    - Life der mobs anpassen
+    - Name anpassen
+
+
+
+
+
+     */
 }
