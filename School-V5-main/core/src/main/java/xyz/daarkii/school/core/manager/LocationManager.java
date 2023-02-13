@@ -50,8 +50,25 @@ public class LocationManager {
         return this.cachedLocations.getOrDefault(key, this.loadFromDatabase(key));
     }
 
-    //Check whether Location exists or not
+    /**
+     * check whether location exists
+     * database or datacache
+     * @param key
+     * @return
+     */
     public boolean locationexists(String key){
+        if(this.cachedLocations.containsKey(key)){
+            return true;
+        }else {
+            return locationexistsDatbase(key);
+        }
+    }
+    /**
+     * Databasecheck whether a location exists or not
+     * @param key
+     * @return
+     */
+    public boolean locationexistsDatbase(String key){
         try(var cn = this.mySQL.dataSource().getConnection(); var ps = cn.prepareStatement("SELECT * FROM locations WHERE name = ?")) {
             ps.setString(1, key);
             ResultSet rs = ps.executeQuery();

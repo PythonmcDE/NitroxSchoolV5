@@ -20,7 +20,7 @@ public class CoopBank implements Bank {
 
     @Override
     public Document getData() {
-        return null;
+        return this.data;
     }
 
     @Override

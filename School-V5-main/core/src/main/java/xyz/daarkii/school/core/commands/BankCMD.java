@@ -1,19 +1,18 @@
 package xyz.daarkii.school.core.commands;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 import xyz.daarkii.school.common.message.MessageLoader;
 import xyz.daarkii.school.common.message.PlaceHolder;
 import xyz.daarkii.school.common.utils.ItemBuilder;
 import xyz.daarkii.school.common.utils.StringUtils;
 import xyz.daarkii.school.core.bank.Bank;
 import xyz.daarkii.school.core.bank.CoopBank;
+import xyz.daarkii.school.core.bank.PersonalBank;
 import xyz.daarkii.school.core.command.Command;
 import xyz.daarkii.school.core.entity.SchoolPlayer;
 import xyz.daarkii.school.core.factory.PlayerFactory;
@@ -33,80 +32,79 @@ public class BankCMD extends Command {
 
         gui.addPane(this.backgroundPane());
 
-        var pane = new StaticPane(0, 3, 9, 1);
+        var pane = new StaticPane(0, 1, 9, 1);
 
         if(player.hasCoop()) {
 
             pane.addItem(new ItemBuilder(Material.ENDER_CHEST)
                     .setDisplayName(MessageLoader.loadComponent("school.bank.coop.item.name", player.getLanguage()))
-                    .buildGuiItem(), 4, 2);
+                    .buildGuiItem(event -> {
+
+                        var schoolPlayer = PlayerFactory.getPlayer(event.getWhoClicked().getUniqueId());
+
+                        if(schoolPlayer == null)
+                            return;
+
+                        schoolPlayer.showInventory(this.getBankGui(schoolPlayer.getCoopBank(), schoolPlayer.getLanguage()));
+                    }), 3, 0);
 
             pane.addItem(new ItemBuilder(Material.CHEST)
                     .setDisplayName(MessageLoader.loadComponent("school.bank.personal.item.name", player.getLanguage()))
-                    .buildGuiItem(), 6, 2);
-        } else
-            pane.addItem(new ItemBuilder(Material.CHEST)
-                    .setDisplayName(MessageLoader.loadComponent("school.bank.general.item.name", player.getLanguage()))
-                    .buildGuiItem(), 5, 2);
+                    .buildGuiItem(event -> {
+
+                        var schoolPlayer = PlayerFactory.getPlayer(event.getWhoClicked().getUniqueId());
+
+                        if(schoolPlayer == null)
+                            return;
+
+                        schoolPlayer.showInventory(this.getBankGui(schoolPlayer.getBank(), schoolPlayer.getLanguage()));
+                    }), 5, 0);
+        } else {
+            player.showInventory(this.getBankGui(player.getBank(), player.getLanguage()));
+            return;
+        }
+
+        player.sendMessage("school.bank.personal.deposit.item.lore", new PlaceHolder("gems", 0));
 
         gui.addPane(pane);
-
-        gui.setOnTopClick(event -> {
-
-            var item = event.getCurrentItem();
-
-            if(item == null)
-                return;
-
-            if(item.getType() != Material.ENDER_CHEST && item.getType() != Material.CHEST)
-                return;
-
-            var schoolPlayer = PlayerFactory.getPlayer(event.getWhoClicked().getUniqueId());
-
-            if(schoolPlayer == null)
-                return;
-
-            var bank = item.getType() == Material.ENDER_CHEST ? schoolPlayer.getCoopBank() : schoolPlayer.getBank();
-
-            schoolPlayer.showInventory(this.getBankGui(bank, schoolPlayer.getLanguage()));
-        });
+        player.showInventory(gui);
     }
 
     private ChestGui getBankGui(Bank bank, String language) {
 
-        var key = bank instanceof CoopBank ? "school.bank.gui.coop" : "school.bank.gui.personal";
+        var key = bank instanceof PersonalBank ? "school.bank.gui.personal" : "school.bank.gui.coop";
         var gui = new ChestGui(3, MessageLoader.loadMessage(key, language));
 
         gui.addPane(this.backgroundPane());
 
-        var pane = new StaticPane(0, 5, 9, 1);
+        var pane = new StaticPane(0, 1, 9, 1);
 
-        var fillKey = bank instanceof CoopBank ? "school.bank.coop.fill.item.lore" : "school.bank.personal.fill.item.lore";
-        var depositKey = bank instanceof CoopBank ? "school.bank.coop.deposit.item.lore" : "school.bank.personal.deposit.item.lore";
+        var fillKey = bank instanceof PersonalBank ? "school.bank.personal.fill.item.lore" : "school.bank.coop.fill.item.lore";
+        var depositKey = bank instanceof PersonalBank ? "school.bank.personal.deposit.item.lore" : "school.bank.coop.deposit.item.lore";
 
         pane.addItem(new ItemBuilder(Material.CHEST)
                         .setDisplayName(MessageLoader.loadComponent("school.bank.fill.item.name", language))
                         .setLore(MessageLoader.loadComponent(fillKey, language, new PlaceHolder("gems", StringUtils.formatGems(bank.getGems()))))
-                        .buildGuiItem(), 4, 8);
+                        .buildGuiItem(), 3, 0);
 
-        pane.addItem(new ItemBuilder(Material.CHEST)
+        pane.addItem(new ItemBuilder(Material.FURNACE)
                 .setDisplayName(MessageLoader.loadComponent("school.bank.deposit.item.name", language))
                 .setLore(MessageLoader.loadComponent(depositKey, language, new PlaceHolder("gems", StringUtils.formatGems(bank.getGems()))))
-                .buildGuiItem(), 6, 8);
+                .buildGuiItem(), 5, 0);
 
         gui.addPane(pane);
-
         return gui;
     }
 
     private OutlinePane backgroundPane() {
 
-        var background = new OutlinePane(0, 0, 9 ,1);
+        var background = new OutlinePane(0, 0, 9 ,3);
 
-        background.addItem(new GuiItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE)));
+        background.addItem(new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setDisplayName(" ").buildGuiItem());
         background.setRepeat(true);
         background.setPriority(Pane.Priority.LOWEST);
 
+        background.setOnClick(event -> event.setCancelled(true));
         return background;
     }
 

@@ -6,12 +6,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import xyz.daarkii.school.common.collection.Config;
 import xyz.daarkii.school.common.storage.MySQLStorage;
 import xyz.daarkii.school.core.command.CommandManager;
-import xyz.daarkii.school.core.commands.BankCMD;
-import xyz.daarkii.school.core.commands.ExpCMD;
-import xyz.daarkii.school.core.commands.GemsCMD;
+import xyz.daarkii.school.core.commands.*;
 import xyz.daarkii.school.core.factory.PlayerFactory;
 import xyz.daarkii.school.common.storage.MongoStorage;
 import xyz.daarkii.school.core.manager.MongoObjectManager;
+import xyz.daarkii.school.core.pets.SchoolPet;
 
 import java.io.File;
 
@@ -20,16 +19,19 @@ public class SchoolCore extends JavaPlugin {
     @Getter
     private static SchoolCore instance;
 
-    private CommandManager commandManager;
+    protected CommandManager commandManager;
 
     @Getter
-    private MongoObjectManager mongoManager;
+    protected MongoObjectManager mongoManager;
 
     @Getter
-    private MySQLStorage mySQL;
+    protected MongoStorage mongoStorage;
 
     @Getter
-    private Config customConfig;
+    protected MySQLStorage mySQL;
+
+    @Getter
+    protected Config customConfig;
 
     @SneakyThrows
     @Override
@@ -39,7 +41,8 @@ public class SchoolCore extends JavaPlugin {
         this.customConfig = new Config(new File(this.getDataFolder(), "config.json"), "config.json");
 
         this.mySQL = new MySQLStorage(customConfig);
-        this.mongoManager = new MongoObjectManager(new MongoStorage("mongodb://" + customConfig.getString("mongo.user") + ":" + customConfig.getString("mongo.password") + "@" +customConfig.getString("mongo.host") + ":" + customConfig.getString("mongo.port") + "/?maxPoolSize=20&w=majority", customConfig.getString("mongo.database")));
+        this.mongoStorage = new MongoStorage("mongodb://" + customConfig.getString("mongo.user") + ":" + customConfig.getString("mongo.password") + "@" +customConfig.getString("mongo.host") + ":" + customConfig.getString("mongo.port") + "/?maxPoolSize=20&w=majority", customConfig.getString("mongo.database"));
+        this.mongoManager = new MongoObjectManager(this.mongoStorage);
 
         this.commandManager = new CommandManager();
         this.registerCommands();
@@ -52,5 +55,9 @@ public class SchoolCore extends JavaPlugin {
         this.commandManager.addCommand(new BankCMD());
         this.commandManager.addCommand(new ExpCMD());
         this.commandManager.addCommand(new GemsCMD());
+        this.commandManager.addCommand(new GamemodeCMD());
+        this.commandManager.addCommand(new LocationCMD());
+        this.commandManager.addCommand(new PetCMD());
+        this.commandManager.addCommand(new MongodeleteCMD());
     }
 }
